@@ -3,9 +3,11 @@ const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
 const Campground = require('./models/campground');
+const ejsMate = require('ejs-mate');
 const methodOverride = require('method-override');
 const { runInNewContext } = require('vm');
 const { findByIdAndDelete } = require('./models/campground');
+
 
 //mongoose connection
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
@@ -22,6 +24,7 @@ db.once("open", () => {
 });
 
 //
+app.engine('ejs', ejsMate); // instead of a default
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
