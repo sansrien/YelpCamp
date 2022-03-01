@@ -8,10 +8,14 @@ const { runInNewContext } = require('vm'); // pas sur
 const { findByIdAndDelete } = require('./models/campground');
 const session = require('express-session')
 const flash = require('connect-flash')
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user')
 
 //routes
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
+const campgroundRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
+const userRoutes = require('./routes/users');
 
 //mongoose connection to the database
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
@@ -49,14 +53,28 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 
-app.use((req,res,next) => {
-    res.locals.success = req.flash('success'); //we will have access to this on every single request
+//passport
+app.use(passport.initialize());
+app.use(passport.session()); //for persistent login sessions, app.use(session) must come before
+passport.use(new LocalStrategy(User.authenticate())) //the authentication method will be located on the user model
+
+passport.serializeUser(User.serializeUser());//will tell passport how to serialize user/ how we store user in a session
+passport.deserializeUser(User.deserializeUser());// will tell how to get user out of the session/ unstoring
+
+
+app.use((req,res,next) => {//we will have access to this on every single request
+    res.locals.currentUser = req.user;
+    res.locals.success = req.flash('success'); 
     res.locals.error = req.flash('error');
     next();
 })
+
+
+
 //routes
-app.use('/campgrounds', campgrounds);
-app.use('/campgrounds/:id/reviews', reviews);
+app.use('/campgrounds', campgroundRoutes);
+app.use('/campgrounds/:id/reviews', reviewRoutes);
+app.use('/', userRoutes);
 
 
 // Home route diff from show campgrounds 
