@@ -6,8 +6,6 @@ const Review = require('../models/review')
 const Campground = require('../models/campground');
 const { campgroundSchema, reviewSchema } = require('../schemas.js'); // for validating the schema
 
-
-
 const validateCampground = (req, res, next) => {
     
     const { error } = campgroundSchema.validate(req.body) //from JOI
@@ -36,14 +34,18 @@ router.post('/', validateCampground, catchAsync(async (req, res,next) => {
     // if(!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
     const campground = new Campground(req.body.campground); //post will have a request body
     await campground.save();
+    req.flash('success', 'Successfully made a new campground!');
     res.redirect(`campgrounds/${campground._id}`)
 
 }))
 
-
 //show specific campground
 router.get('/:id', catchAsync(async (req, res) => {  //order matters! anything may be treated as :id if placed at first
     const campground = await Campground.findById(req.params.id).populate('reviews'); //to be able to show reviews too
+    if(!campground){
+        req.flash('error','Cannot find that campground')
+        return res.redirect('/campgrounds')
+    }
     console.log(campground)
     res.render('campgrounds/show', { campground })
 }))
@@ -51,6 +53,10 @@ router.get('/:id', catchAsync(async (req, res) => {  //order matters! anything m
 //show edit page for specific campground
 router.get('/:id/edit', catchAsync(async (req,res) => {
     const campground = await Campground.findById(req.params.id)
+    if(!campground){
+        req.flash('error','Cannot find that campground')
+        return res.redirect('/campgrounds')
+    }
     res.render('campgrounds/edit', {campground});
 }))
 
@@ -58,6 +64,7 @@ router.get('/:id/edit', catchAsync(async (req,res) => {
 router.put('/:id', validateCampground, catchAsync(async (req,res) => {
     const { id }= req.params;
     const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
+    req.flash('success', "Successfully updated campground")
     res.redirect(`/campgrounds/${campground._id}`)
 }))
 
@@ -66,6 +73,7 @@ router.delete('/:id', catchAsync(async (req, res) => {
     const { id } = req.params;
      await Campground.findByIdAndDelete(id)
      console.log("Deletingg");
+     req.flash('success', 'successfully deleted review');
     res.redirect(`/campgrounds`)
 }))
 

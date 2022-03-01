@@ -2,39 +2,23 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
-const Campground = require('./models/campground'); //import schemas
 const ejsMate = require('ejs-mate');
-const catchAsync = require('./utils/catchAsync'); 
-const ExpressError = require('./utils/ExpressError')
 const methodOverride = require('method-override');
-const { campgroundSchema, reviewSchema } = require('./schemas.js'); // for validating the schema
 const { runInNewContext } = require('vm'); // pas sur
 const { findByIdAndDelete } = require('./models/campground');
-const Review = require('./models/review')
+const session = require('express-session')
+const flash = require('connect-flash')
 
 //routes
 const campgrounds = require('./routes/campgrounds');
 const reviews = require('./routes/reviews');
 
-app.engine('ejs', ejsMate); // instead of a default
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-app.use(express.urlencoded({extended: true}));
-app.use(methodOverride('_method'));
-app.use(express.static(path.join(__dirname, 'public'))) //serve our "public" directory
-
-//routes
-app.use('/campgrounds', campgrounds);
-app.use('/campgrounds/:id/reviews', reviews);
-
-
 //mongoose connection to the database
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
     useNewUrlParser: true,
     // useCreateIndex: true,
-    useUnifiedTopology: true,
-    useFindandModify: false
+    useUnifiedTopology: true
+    //useFindandModify: false
 })
 
 const db = mongoose.connection;
@@ -42,6 +26,37 @@ db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
     console.log("Database connected");
 });
+
+app.engine('ejs', ejsMate); // instead of a default
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.urlencoded({ extended: true}));
+app.use(methodOverride('_method'));
+app.use(express.static(path.join(__dirname, 'public'))) //serve our "public" directory
+
+const sessionConfig = {
+    secret: 'thisshouldbeabettersecret!',
+    resave: false,
+    saveUninitialized: true,
+    cookie:{
+        httpOnly: true,
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    }
+}
+
+app.use(session(sessionConfig));
+app.use(flash());
+
+app.use((req,res,next) => {
+    res.locals.success = req.flash('success'); //we will have access to this on every single request
+    res.locals.error = req.flash('error');
+    next();
+})
+//routes
+app.use('/campgrounds', campgrounds);
+app.use('/campgrounds/:id/reviews', reviews);
 
 
 // Home route diff from show campgrounds 
