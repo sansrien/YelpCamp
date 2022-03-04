@@ -1,3 +1,9 @@
+if(process.env.NODE_ENV !== "production"){ //if we're running in development mode
+    require('dotenv').config()
+}
+
+console.log(process.env.SECRET)
+
 const express = require('express');
 const app = express();
 const path = require('path');

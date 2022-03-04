@@ -1,6 +1,7 @@
 const { campgroundSchema, reviewSchema } = require('./schemas.js'); // for validating the schema
 const ExpressError = require('./utils/ExpressError');
 const Review = require('./models/review');
+const Campground = require('./models/campground');
 
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()){
@@ -11,7 +12,6 @@ module.exports.isLoggedIn = (req, res, next) => {
     next();
 }
 module.exports.validateCampground = (req, res, next) => {
-    
     const { error } = campgroundSchema.validate(req.body) //from JOI
     if(error){
         const msg = error.details.map(el => el.message).join('.')
