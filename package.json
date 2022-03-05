@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/sansrien/YelpCamp#readme",
   "dependencies": {
+    "@mapbox/mapbox-sdk": "^0.13.3",
     "cloudinary": "^1.28.1",
     "connect-flash": "^0.1.1",
     "dotenv": "^16.0.0",
@@ -26,6 +27,7 @@
     "express": "^4.17.2",
     "express-session": "^1.17.2",
     "joi": "^17.6.0",
+    "mapbox-gl": "^2.7.0",
     "method-override": "^3.0.0",
     "mongoose": "^6.1.4",
     "multer": "^1.4.4",
