@@ -2,6 +2,7 @@ if(process.env.NODE_ENV !== "production"){ //if we're running in development mod
     require('dotenv').config()
 }
 
+//mongodb+srv://user:<password>@cluster0.fiqij.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 console.log(process.env.SECRET)
 
 const express = require('express');
@@ -20,13 +21,16 @@ const User = require('./models/user')
 const ExpressError = require('./utils/ExpressError');
 const mongoSanitize = require('express-mongo-sanitize');
 
+const MongoStore = require('connect-mongo');
 //routes
 const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
 const userRoutes = require('./routes/users');
-
+//const dbUrl = process.env.DB_URL;
+const dbUrl='mongodb://localhost:27017/yelp-camp'
+//'mongodb://localhost:27017/yelp-camp'
 //mongoose connection to the database
-mongoose.connect('mongodb://localhost:27017/yelp-camp', {
+mongoose.connect(dbUrl, {
     useNewUrlParser: true,
     // useCreateIndex: true,
     useUnifiedTopology: true
@@ -49,8 +53,21 @@ app.use(express.static(path.join(__dirname, 'public'))) //serve our "public" dir
 app.use(mongoSanitize({
     replaceWith: '_'
 }))
+const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
+
+// const store = new MongoDBStore({
+//     url: dbUrl,
+//     secret,
+//     touchAfter: 24 * 60 * 60
+// });
+
+// store.on("error", function (e) {
+//     console.log("SESSION STORE ERROR", e)
+// })
 
 const sessionConfig = {
+    store:MongoStore.create({ mongoUrl: dbUrl }),
+    name: 'session',
     secret: 'thisshouldbeabettersecret!',
     resave: false,
     saveUninitialized: true,
