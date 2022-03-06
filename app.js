@@ -18,6 +18,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user')
 const ExpressError = require('./utils/ExpressError');
+const mongoSanitize = require('express-mongo-sanitize');
 
 //routes
 const campgroundRoutes = require('./routes/campgrounds');
@@ -45,13 +46,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true}));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public'))) //serve our "public" directory
+app.use(mongoSanitize({
+    replaceWith: '_'
+}))
 
 const sessionConfig = {
     secret: 'thisshouldbeabettersecret!',
     resave: false,
     saveUninitialized: true,
     cookie:{
-        httpOnly: true,
+        httpOnly: true, //our cookies are only accessible through html not javascript
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
@@ -59,6 +63,8 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 app.use(flash());
+
+
 
 //passport
 app.use(passport.initialize());
